@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpeedRacer 3D - Ultimate Car Racing</title>
+    <title>Galaxy Defender - Ultimate Space Shooter</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
         
         body {
@@ -19,7 +21,7 @@
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
-            color: white;
+            touch-action: none;
         }
         
         #gameContainer {
@@ -31,13 +33,13 @@
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-            border: 3px solid #ffcc00;
+            border: 3px solid #00ffcc;
         }
         
         #gameCanvas {
             width: 100%;
             height: 100%;
-            display: none;
+            display: block;
         }
         
         .screen {
@@ -50,104 +52,76 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #0c0e2b, #1a1f38);
+            background: linear-gradient(135deg, rgba(12, 14, 43, 0.95), rgba(26, 31, 56, 0.98));
             padding: 30px;
             text-align: center;
-            z-index: 10;
+            z-index: 100;
         }
         
         .game-title {
-            font-size: 42px;
+            font-size: 3.5em;
             font-weight: 900;
-            background: linear-gradient(45deg, #ffcc00, #ff9900, #ff6600);
+            background: linear-gradient(45deg, #00ffcc, #0099ff, #ff00cc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
-            text-shadow: 0 0 30px rgba(255, 153, 0, 0.5);
+            text-shadow: 0 0 30px rgba(0, 255, 204, 0.5);
+            animation: titleGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            from { text-shadow: 0 0 20px rgba(0, 255, 204, 0.5); }
+            to { text-shadow: 0 0 30px rgba(0, 255, 204, 0.8), 0 0 40px rgba(0, 153, 255, 0.6); }
         }
         
         .game-subtitle {
-            font-size: 16px;
+            font-size: 1.1em;
             color: #aaccff;
             margin-bottom: 40px;
             font-weight: 300;
         }
         
         .btn {
-            background: linear-gradient(45deg, #ffcc00, #ff9900);
+            background: linear-gradient(45deg, #00ffcc, #0099ff);
             border: none;
             border-radius: 50px;
             color: #1a1f38;
-            font-size: 18px;
+            font-size: 1.2em;
             font-weight: bold;
             padding: 15px 40px;
-            margin: 8px;
+            margin: 10px;
             cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 8px 20px rgba(255, 153, 0, 0.3);
+            box-shadow: 0 8px 20px rgba(0, 255, 204, 0.3);
             width: 220px;
             text-transform: uppercase;
             letter-spacing: 1px;
-        }
-        
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 25px rgba(255, 153, 0, 0.4);
-        }
-        
-        .btn:active {
-            transform: translateY(1px);
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-        }
-        
-        .car-selection {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin: 25px 0;
-            width: 100%;
-            max-width: 300px;
-        }
-        
-        .car-option {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid transparent;
-        }
-        
-        .car-option.selected {
-            border-color: #ffcc00;
-            background: rgba(255, 204, 0, 0.1);
-            transform: scale(1.05);
-        }
-        
-        .car-preview {
-            width: 100%;
-            height: 60px;
-            background: linear-gradient(45deg, #ff6b6b, #ffcc00);
-            border-radius: 10px;
-            margin-bottom: 8px;
             position: relative;
             overflow: hidden;
         }
         
-        .car-name {
-            font-size: 12px;
-            font-weight: bold;
-            color: #ffcc00;
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
         }
         
-        .car-stats {
-            font-size: 10px;
-            color: #aaccff;
-            margin-top: 5px;
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #ff00cc, #ff0066);
+            box-shadow: 0 8px 20px rgba(255, 0, 204, 0.3);
         }
         
         .hud {
@@ -155,64 +129,84 @@
             top: 20px;
             left: 0;
             width: 100%;
-            padding: 0 20px;
+            padding: 0 25px;
             display: flex;
             justify-content: space-between;
-            z-index: 5;
+            z-index: 50;
+            pointer-events: none;
         }
         
         .hud-item {
             background: rgba(0, 0, 0, 0.7);
-            padding: 10px 20px;
+            padding: 12px 20px;
             border-radius: 25px;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 1em;
             backdrop-filter: blur(10px);
-        }
-        
-        .speed-display {
-            color: #ffcc00;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .score-display {
             color: #00ffcc;
         }
         
+        .level-display {
+            color: #ff00cc;
+        }
+        
+        .health-bar {
+            position: absolute;
+            top: 70px;
+            left: 25px;
+            width: 150px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0066, #ff00cc);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        
         .controls {
             position: absolute;
-            bottom: 30px;
+            bottom: 25px;
             left: 0;
             width: 100%;
             display: flex;
             justify-content: space-between;
             padding: 0 25px;
-            z-index: 5;
+            z-index: 50;
         }
         
         .control-btn {
             width: 70px;
             height: 70px;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 28px;
+            font-size: 1.8em;
             color: white;
             backdrop-filter: blur(10px);
             border: 2px solid rgba(255, 255, 255, 0.3);
             user-select: none;
+            transition: all 0.2s;
         }
         
-        .turbo-btn {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(45deg, #ff3300, #cc0000);
-            font-size: 14px;
-            font-weight: bold;
-            text-align: center;
-            line-height: 1.2;
-            padding: 10px;
+        .control-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.9);
+        }
+        
+        .fire-btn {
+            background: linear-gradient(45deg, #ff0066, #ff00cc);
+            border-color: rgba(255, 0, 204, 0.5);
         }
         
         .hidden {
@@ -225,10 +219,11 @@
             padding: 15px;
             margin: 10px 0;
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
             width: 100%;
             max-width: 300px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .leaderboard-item {
@@ -240,34 +235,41 @@
             justify-content: space-between;
             width: 100%;
             max-width: 280px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .mission-progress {
+        .powerup-indicator {
+            position: absolute;
+            top: 70px;
+            right: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: #ffcc00;
+            border: 1px solid rgba(255, 204, 0, 0.3);
+        }
+        
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-            margin-top: 5px;
-            overflow: hidden;
-        }
-        
-        .progress-bar {
             height: 100%;
-            background: linear-gradient(45deg, #ffcc00, #ff9900);
-            border-radius: 3px;
-            transition: width 0.3s;
+            pointer-events: none;
+            z-index: 1;
         }
         
-        .achievement-badge {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(45deg, #ffcc00, #ff9900);
+        .star {
+            position: absolute;
+            background: white;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            margin: 10px;
+            animation: twinkle 3s infinite alternate;
+        }
+        
+        @keyframes twinkle {
+            from { opacity: 0.3; }
+            to { opacity: 1; }
         }
     </style>
 </head>
@@ -275,442 +277,693 @@
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         
+        <div class="stars" id="stars"></div>
+        
         <div class="hud">
-            <div class="hud-item score-display">SCORE: 0</div>
-            <div class="hud-item speed-display">SPEED: 0</div>
+            <div class="hud-item score-display">SCORE: <span id="scoreValue">0</span></div>
+            <div class="hud-item level-display">LEVEL: <span id="levelValue">1</span></div>
+        </div>
+        
+        <div class="health-bar">
+            <div class="health-fill" id="healthFill" style="width: 100%"></div>
+        </div>
+        
+        <div class="powerup-indicator" id="powerupIndicator" style="display: none;">
+            POWER UP!
         </div>
         
         <div class="controls">
             <div class="control-btn" id="leftBtn">←</div>
-            <div class="control-btn turbo-btn" id="turboBtn">TURBO</div>
+            <div class="control-btn fire-btn" id="fireBtn">⚡</div>
             <div class="control-btn" id="rightBtn">→</div>
         </div>
         
         <!-- ANA MENÜ -->
         <div id="mainMenu" class="screen">
-            <div class="game-title">SPEEDRACER</div>
-            <div class="game-subtitle">3D ULTIMATE RACING EXPERIENCE</div>
+            <div class="game-title">GALAXY DEFENDER</div>
+            <div class="game-subtitle">EPIC SPACE SHOOTER</div>
             
-            <button class="btn" id="quickRaceBtn">QUICK RACE</button>
-            <button class="btn btn-secondary" id="careerBtn">CAREER MODE</button>
-            <button class="btn" id="multiplayerBtn">MULTIPLAYER</button>
-            <button class="btn btn-secondary" id="garageBtn">GARAGE</button>
-            <button class="btn" id="achievementsBtn">ACHIEVEMENTS</button>
-        </div>
-        
-        <!-- ARABA SEÇİM -->
-        <div id="carSelect" class="screen hidden">
-            <div class="game-title">SELECT CAR</div>
+            <button class="btn" id="startGameBtn">START MISSION</button>
+            <button class="btn btn-secondary" id="upgradesBtn">UPGRADES</button>
+            <button class="btn" id="leaderboardBtn">LEADERBOARD</button>
             
-            <div class="car-selection">
-                <div class="car-option selected">
-                    <div class="car-preview" style="background: linear-gradient(45deg, #ff6b6b, #ee5a24)"></div>
-                    <div class="car-name">SPORT RACER</div>
-                    <div class="car-stats">Speed: 95% | Turbo: 80%</div>
-                </div>
-                <div class="car-option">
-                    <div class="car-preview" style="background: linear-gradient(45deg, #4834d4, #686de0)"></div>
-                    <div class="car-name">DRIFT KING</div>
-                    <div class="car-stats">Speed: 85% | Control: 95%</div>
-                </div>
-                <div class="car-option">
-                    <div class="car-preview" style="background: linear-gradient(45deg, #00d2d3, #54a0ff)"></div>
-                    <div class="car-name">TURBO BEAST</div>
-                    <div class="car-stats">Turbo: 100% | Speed: 75%</div>
-                </div>
-                <div class="car-option">
-                    <div class="car-preview" style="background: linear-gradient(45deg, #ff9ff3, #f368e0)"></div>
-                    <div class="car-name">NEON RIDER</div>
-                    <div class="car-stats">Style: 100% | Speed: 90%</div>
-                </div>
+            <div style="margin-top: 30px; color: #667eea; font-size: 0.9em;">
+                🔥 Tap buttons to move and shoot!
             </div>
-            
-            <button class="btn" id="startRaceBtn">START RACE</button>
-            <button class="btn btn-secondary" id="backToMenuBtn">BACK</button>
         </div>
         
-        <!-- GARAJ -->
-        <div id="garageScreen" class="screen hidden">
-            <div class="game-title">GARAGE</div>
+        <!-- YÜKSELTMELER -->
+        <div id="upgradesScreen" class="screen hidden">
+            <div class="game-title">UPGRADES</div>
             
             <div class="upgrade-item">
                 <div>
-                    <div style="font-weight: bold; color: #ffcc00;">ENGINE POWER</div>
-                    <div class="mission-progress">
-                        <div class="progress-bar" style="width: 70%"></div>
-                    </div>
+                    <div style="font-weight: bold; color: #00ffcc;">LASER POWER</div>
+                    <div style="color: #aaccff; font-size: 0.9em;">Increase damage</div>
                 </div>
-                <button class="btn" style="padding: 8px 15px; font-size: 12px;">UPGRADE</button>
+                <button class="btn" style="padding: 8px 15px; font-size: 0.9em;">BUY</button>
             </div>
             
             <div class="upgrade-item">
                 <div>
-                    <div style="font-weight: bold; color: #ffcc00;">TURBO BOOST</div>
-                    <div class="mission-progress">
-                        <div class="progress-bar" style="width: 50%"></div>
-                    </div>
+                    <div style="font-weight: bold; color: #00ffcc;">SHIELD STRENGTH</div>
+                    <div style="color: #aaccff; font-size: 0.9em;">More health</div>
                 </div>
-                <button class="btn" style="padding: 8px 15px; font-size: 12px;">UPGRADE</button>
+                <button class="btn" style="padding: 8px 15px; font-size: 0.9em;">BUY</button>
             </div>
             
             <div class="upgrade-item">
                 <div>
-                    <div style="font-weight: bold; color: #ffcc00;">NITRO CAPACITY</div>
-                    <div class="mission-progress">
-                        <div class="progress-bar" style="width: 30%"></div>
-                    </div>
+                    <div style="font-weight: bold; color: #00ffcc;">FIRE RATE</div>
+                    <div style="color: #aaccff; font-size: 0.9em;">Shoot faster</div>
                 </div>
-                <button class="btn" style="padding: 8px 15px; font-size: 12px;">UPGRADE</button>
+                <button class="btn" style="padding: 8px 15px; font-size: 0.9em;">BUY</button>
             </div>
             
-            <button class="btn btn-secondary" id="garageBackBtn">BACK</button>
+            <button class="btn btn-secondary" id="upgradesBackBtn">BACK</button>
         </div>
         
-        <!-- BAŞARIMLAR -->
-        <div id="achievementsScreen" class="screen hidden">
-            <div class="game-title">ACHIEVEMENTS</div>
-            
-            <div style="display: flex; flex-wrap: wrap; justify-content: center; margin: 20px 0;">
-                <div class="achievement-badge">🏆</div>
-                <div class="achievement-badge">🚗</div>
-                <div class="achievement-badge">⚡</div>
-                <div class="achievement-badge">⭐</div>
-            </div>
+        <!-- LİDERLİK TABLOSU -->
+        <div id="leaderboardScreen" class="screen hidden">
+            <div class="game-title">LEADERBOARD</div>
             
             <div class="leaderboard-item">
-                <span>First Race</span>
-                <span style="color: #00ffcc;">COMPLETED</span>
+                <span>🚀 SpaceWarrior</span>
+                <span style="color: #00ffcc;">25,480</span>
             </div>
             <div class="leaderboard-item">
-                <span>Speed Demon</span>
-                <span style="color: #ffcc00;">50%</span>
+                <span>⭐ GalaxyHero</span>
+                <span style="color: #ffcc00;">18,920</span>
             </div>
             <div class="leaderboard-item">
-                <span>Turbo Master</span>
-                <span style="color: #ff6b6b;">25%</span>
+                <span>👾 AlienHunter</span>
+                <span style="color: #ff00cc;">15,670</span>
+            </div>
+            <div class="leaderboard-item">
+                <span>🛸 CosmoRider</span>
+                <span style="color: #0099ff;">12,340</span>
             </div>
             
-            <button class="btn btn-secondary" id="achievementsBackBtn">BACK</button>
+            <button class="btn btn-secondary" id="leaderboardBackBtn">BACK</button>
         </div>
         
         <!-- OYUN BİTTİ -->
         <div id="gameOverScreen" class="screen hidden">
-            <div class="game-title">RACE FINISHED</div>
+            <div class="game-title">MISSION FAILED</div>
             
-            <div style="font-size: 24px; color: #ffcc00; margin: 20px 0;">
-                FINAL SCORE: <span id="finalScore">0</span>
+            <div style="font-size: 1.5em; color: #00ffcc; margin: 20px 0;">
+                SCORE: <span id="finalScore">0</span>
             </div>
             
-            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; margin: 15px 0;">
-                <div>BEST COMBO: 15x</div>
-                <div>TOP SPEED: 245 km/h</div>
-                <div>CARS PASSED: 12</div>
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; margin: 15px 0; text-align: left;">
+                <div style="color: #ffcc00;">🏆 HIGHSCORE: 25,480</div>
+                <div style="color: #00ffcc;">👾 ENEMIES DEFEATED: <span id="enemiesDefeated">0</span></div>
+                <div style="color: #ff00cc;">⭐ LEVEL REACHED: <span id="levelReached">1</span></div>
             </div>
             
-            <button class="btn" id="playAgainBtn">PLAY AGAIN</button>
-            <button class="btn btn-secondary" id="mainMenuBtn">MAIN MENU</button>
+            <button class="btn" id="playAgainBtn">FIGHT AGAIN</button>
+            <button class="btn btn-secondary" id="menuBtn">MAIN MENU</button>
         </div>
     </div>
 
     <script>
-        // Oyun değişkenleri
+        // Canvas setup
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        
-        // Ekran boyutları
         canvas.width = 400;
         canvas.height = 700;
-        
-        // Ekranlar
+
+        // Game elements
         const screens = {
             mainMenu: document.getElementById('mainMenu'),
-            carSelect: document.getElementById('carSelect'),
-            garage: document.getElementById('garageScreen'),
-            achievements: document.getElementById('achievementsScreen'),
+            upgrades: document.getElementById('upgradesScreen'),
+            leaderboard: document.getElementById('leaderboardScreen'),
             gameOver: document.getElementById('gameOverScreen')
         };
-        
-        // HUD elementleri
-        const scoreDisplay = document.querySelector('.score-display');
-        const speedDisplay = document.querySelector('.speed-display');
-        const finalScore = document.getElementById('finalScore');
-        
-        // Butonlar
-        const buttons = {
-            quickRace: document.getElementById('quickRaceBtn'),
-            career: document.getElementById('careerBtn'),
-            multiplayer: document.getElementById('multiplayerBtn'),
-            garage: document.getElementById('garageBtn'),
-            achievements: document.getElementById('achievementsBtn'),
-            startRace: document.getElementById('startRaceBtn'),
-            backToMenu: document.getElementById('backToMenuBtn'),
-            garageBack: document.getElementById('garageBackBtn'),
-            achievementsBack: document.getElementById('achievementsBackBtn'),
-            playAgain: document.getElementById('playAgainBtn'),
-            mainMenu: document.getElementById('mainMenuBtn')
-        };
-        
-        // Kontroller
+
+        const scoreElement = document.getElementById('scoreValue');
+        const levelElement = document.getElementById('levelValue');
+        const healthFill = document.getElementById('healthFill');
+        const powerupIndicator = document.getElementById('powerupIndicator');
+        const finalScoreElement = document.getElementById('finalScore');
+        const enemiesDefeatedElement = document.getElementById('enemiesDefeated');
+        const levelReachedElement = document.getElementById('levelReached');
+
+        // Buttons
+        const startGameBtn = document.getElementById('startGameBtn');
+        const upgradesBtn = document.getElementById('upgradesBtn');
+        const leaderboardBtn = document.getElementById('leaderboardBtn');
+        const upgradesBackBtn = document.getElementById('upgradesBackBtn');
+        const leaderboardBackBtn = document.getElementById('leaderboardBackBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const menuBtn = document.getElementById('menuBtn');
         const leftBtn = document.getElementById('leftBtn');
         const rightBtn = document.getElementById('rightBtn');
-        const turboBtn = document.getElementById('turboBtn');
-        
-        // Araba seçenekleri
-        const carOptions = document.querySelectorAll('.car-option');
-        
-        // Oyun durumu
+        const fireBtn = document.getElementById('fireBtn');
+
+        // Game variables
         let gameActive = false;
         let score = 0;
-        let speed = 0;
-        let playerX = canvas.width / 2 - 25;
-        let playerY = canvas.height - 150;
-        const playerWidth = 50;
-        const playerHeight = 80;
-        let playerLane = 1;
-        const lanes = [80, 160, 240, 320];
-        
-        // 3D efekti için değişkenler
-        let roadWidth = 300;
-        let roadX = (canvas.width - roadWidth) / 2;
-        let segmentLength = 200;
-        let camHeight = 1000;
-        let camDepth = 0.84;
-        let road = {
-            segments: [],
-            curves: [],
-            hills: []
+        let level = 1;
+        let health = 100;
+        let enemiesDefeated = 0;
+
+        // Player
+        const player = {
+            x: canvas.width / 2 - 25,
+            y: canvas.height - 100,
+            width: 50,
+            height: 70,
+            speed: 8,
+            color: '#00ffcc',
+            lasers: [],
+            lastShot: 0,
+            shootDelay: 300
         };
-        
-        // Yol segmentleri oluştur
-        function createRoad() {
-            road.segments = [];
-            for(let i = 0; i < 500; i++) {
-                road.segments.push({
-                    index: i,
-                    point: {
-                        world: { z: i * segmentLength },
-                        screen: {},
-                        scale: {}
-                    },
-                    color: Math.floor(i / 5) % 2 ? '#6B8CFF' : '#4865C7'
+
+        // Enemies
+        let enemies = [];
+        let particles = [];
+        let stars = [];
+
+        // Power-ups
+        let powerUps = [];
+        let activePowerUp = null;
+        let powerUpTime = 0;
+
+        // Create stars for background
+        function createStars() {
+            stars = [];
+            for (let i = 0; i < 100; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 1,
+                    speed: Math.random() * 2 + 1
                 });
             }
         }
-        
-        // Oyun başlatma
+
+        // Start game
         function startGame() {
             gameActive = true;
             score = 0;
-            speed = 0;
-            playerLane = 1;
-            playerX = lanes[playerLane] - playerWidth/2;
-            
-            createRoad();
-            
+            level = 1;
+            health = 100;
+            enemiesDefeated = 0;
+            player.x = canvas.width / 2 - 25;
+            player.lasers = [];
+            enemies = [];
+            particles = [];
+            powerUps = [];
+            activePowerUp = null;
+
+            createStars();
+            updateHUD();
             hideAllScreens();
-            canvas.style.display = 'block';
             
             gameLoop();
         }
-        
-        // Oyun döngüsü
+
+        // Game loop
         function gameLoop() {
             if (!gameActive) return;
-            
-            // Arkaplan
-            ctx.fillStyle = '#1a1f38';
+
+            // Clear canvas
+            ctx.fillStyle = '#0a0a16';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Yolu çiz
-            drawRoad3D();
-            
-            // Arabaları çiz
-            drawCars();
-            
-            // Oyuncu arabasını çiz
-            drawPlayerCar();
-            
-            // Skor ve hızı güncelle
-            score += Math.floor(speed / 10);
-            speed = Math.min(200, speed + 0.1);
-            
-            scoreDisplay.textContent = `SCORE: ${score}`;
-            speedDisplay.textContent = `SPEED: ${Math.floor(speed)}`;
-            
-            // Çarpışma kontrolü
-            checkCollisions();
-            
+
+            // Draw stars
+            drawStars();
+
+            // Update and draw player
+            updatePlayer();
+            drawPlayer();
+
+            // Update and draw enemies
+            updateEnemies();
+
+            // Update and draw lasers
+            updateLasers();
+
+            // Update and draw particles
+            updateParticles();
+
+            // Update and draw power-ups
+            updatePowerUps();
+
+            // Spawn enemies
+            spawnEnemies();
+
+            // Spawn power-ups
+            spawnPowerUps();
+
+            // Update level
+            updateLevel();
+
+            // Update active power-up
+            updateActivePowerUp();
+
             requestAnimationFrame(gameLoop);
         }
-        
-        // 3D yol çizimi
-        function drawRoad3D() {
-            const baseSegment = Math.floor(camDepth / segmentLength);
-            const basePercent = (camDepth % segmentLength) / segmentLength;
-            
-            let x = 0;
-            let dx = 0;
-            
-            let maxy = canvas.height;
-            
-            let n = 0;
-            for(n = baseSegment; n < baseSegment + 200; n++) {
-                const segment = road.segments[n];
-                if(!segment) continue;
-                
-                const clip = 0;
-                
-                const camX = 0;
-                const camY = 0;
-                const camZ = camDepth;
-                
-                const scale = camHeight / segment.point.world.z;
-                const x1 = roadX - scale * roadWidth / 2;
-                const x2 = roadX + scale * roadWidth / 2;
-                
-                segment.point.screen = {
-                    x: canvas.width/2,
-                    y: canvas.height/2,
-                    z: 0
-                };
-                
-                segment.point.scale = scale;
-                
-                // Yol segmentini çiz
-                ctx.fillStyle = segment.color;
+
+        // Draw stars
+        function drawStars() {
+            ctx.fillStyle = '#ffffff';
+            stars.forEach(star => {
+                ctx.globalAlpha = Math.random() * 0.8 + 0.2;
                 ctx.beginPath();
-                ctx.moveTo(x1, maxy);
-                ctx.lineTo(x1, canvas.height/2 + 100);
-                ctx.lineTo(x2, canvas.height/2 + 100);
-                ctx.lineTo(x2, maxy);
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
                 ctx.fill();
                 
-                maxy = canvas.height/2 + 100;
+                // Move stars
+                star.y += star.speed;
+                if (star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        // Update player
+        function updatePlayer() {
+            // Boundary check
+            if (player.x < 0) player.x = 0;
+            if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+        }
+
+        // Draw player
+        function drawPlayer() {
+            // Player ship
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.moveTo(player.x + player.width / 2, player.y);
+            ctx.lineTo(player.x, player.y + player.height);
+            ctx.lineTo(player.x + player.width, player.y + player.height);
+            ctx.closePath();
+            ctx.fill();
+
+            // Engine glow
+            ctx.fillStyle = '#0099ff';
+            ctx.beginPath();
+            ctx.moveTo(player.x + player.width / 2 - 10, player.y + player.height);
+            ctx.lineTo(player.x + player.width / 2, player.y + player.height + 20);
+            ctx.lineTo(player.x + player.width / 2 + 10, player.y + player.height);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // Spawn enemies
+        function spawnEnemies() {
+            if (Math.random() < 0.02 + (level * 0.005)) {
+                enemies.push({
+                    x: Math.random() * (canvas.width - 40),
+                    y: -40,
+                    width: 40,
+                    height: 40,
+                    speed: 2 + (level * 0.3),
+                    color: '#ff0066',
+                    health: 1
+                });
             }
-            
-            // Yol çizgileri
-            for(let i = 0; i < 4; i++) {
-                const laneX = roadX - roadWidth/2 + roadWidth * (i + 1) / 5;
-                ctx.strokeStyle = '#FFFFFF';
-                ctx.lineWidth = 3;
-                ctx.setLineDash([20, 20]);
+        }
+
+        // Update enemies
+        function updateEnemies() {
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                
+                // Move enemy
+                enemy.y += enemy.speed;
+                
+                // Draw enemy
+                ctx.fillStyle = enemy.color;
                 ctx.beginPath();
-                ctx.moveTo(laneX, 0);
-                ctx.lineTo(laneX, canvas.height);
-                ctx.stroke();
+                ctx.arc(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, enemy.width / 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Check if enemy is off screen
+                if (enemy.y > canvas.height) {
+                    enemies.splice(i, 1);
+                    continue;
+                }
+                
+                // Check collision with player
+                if (
+                    player.x < enemy.x + enemy.width &&
+                    player.x + player.width > enemy.x &&
+                    player.y < enemy.y + enemy.height &&
+                    player.y + player.height > enemy.y
+                ) {
+                    takeDamage(20);
+                    createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, enemy.color);
+                    enemies.splice(i, 1);
+                }
             }
-            ctx.setLineDash([]);
         }
-        
-        // Oyuncu arabasını çiz
-        function drawPlayerCar() {
-            ctx.fillStyle = '#FF6B6B';
-            ctx.fillRect(playerX, playerY, playerWidth, playerHeight);
-            
-            // Cam
-            ctx.fillStyle = '#A0D2FF';
-            ctx.fillRect(playerX + 5, playerY + 5, playerWidth - 10, 20);
-            
-            // Tekerlekler
-            ctx.fillStyle = '#222';
-            ctx.fillRect(playerX - 5, playerY + 10, 5, 20);
-            ctx.fillRect(playerX + playerWidth, playerY + 10, 5, 20);
-            ctx.fillRect(playerX - 5, playerY + playerHeight - 30, 5, 20);
-            ctx.fillRect(playerX + playerWidth, playerY + playerHeight - 30, 5, 20);
+
+        // Shoot laser
+        function shootLaser() {
+            const now = Date.now();
+            if (now - player.lastShot > player.shootDelay) {
+                player.lasers.push({
+                    x: player.x + player.width / 2 - 2,
+                    y: player.y,
+                    width: 4,
+                    height: 20,
+                    speed: 10,
+                    color: '#00ffcc'
+                });
+                player.lastShot = now;
+            }
         }
-        
-        // Diğer arabaları çiz
-        function drawCars() {
-            // Basit araba yerleşimi
-            ctx.fillStyle = '#4865C7';
-            ctx.fillRect(lanes[0] - 25, 200, 50, 80);
-            
-            ctx.fillStyle = '#FFCC00';
-            ctx.fillRect(lanes[2] - 25, 400, 50, 80);
-            
-            ctx.fillStyle = '#00D2D3';
-            ctx.fillRect(lanes[1] - 25, 600, 50, 80);
+
+        // Update lasers
+        function updateLasers() {
+            for (let i = player.lasers.length - 1; i >= 0; i--) {
+                const laser = player.lasers[i];
+                
+                // Move laser
+                laser.y -= laser.speed;
+                
+                // Draw laser
+                ctx.fillStyle = laser.color;
+                ctx.fillRect(laser.x, laser.y, laser.width, laser.height);
+                
+                // Add glow effect
+                ctx.fillStyle = '#ffffff';
+                ctx.globalAlpha = 0.5;
+                ctx.fillRect(laser.x - 2, laser.y - 2, laser.width + 4, laser.height + 4);
+                ctx.globalAlpha = 1;
+                
+                // Check if laser is off screen
+                if (laser.y < 0) {
+                    player.lasers.splice(i, 1);
+                    continue;
+                }
+                
+                // Check collision with enemies
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    if (
+                        laser.x < enemy.x + enemy.width &&
+                        laser.x + laser.width > enemy.x &&
+                        laser.y < enemy.y + enemy.height &&
+                        laser.y + laser.height > enemy.y
+                    ) {
+                        // Hit enemy
+                        enemy.health--;
+                        if (enemy.health <= 0) {
+                            score += 100;
+                            enemiesDefeated++;
+                            createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, enemy.color);
+                            enemies.splice(j, 1);
+                            
+                            // Chance to spawn power-up
+                            if (Math.random() < 0.1) {
+                                spawnPowerUp(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+                            }
+                        }
+                        
+                        player.lasers.splice(i, 1);
+                        updateHUD();
+                        break;
+                    }
+                }
+            }
         }
-        
-        // Çarpışma kontrolü
-        function checkCollisions() {
-            // Basit çarpışma kontrolü
-            if(Math.random() < 0.005) {
+
+        // Spawn power-up
+        function spawnPowerUp(x, y) {
+            powerUps.push({
+                x: x - 15,
+                y: y,
+                width: 30,
+                height: 30,
+                speed: 2,
+                type: Math.random() < 0.5 ? 'health' : 'rapid',
+                color: Math.random() < 0.5 ? '#ffcc00' : '#0099ff'
+            });
+        }
+
+        // Update power-ups
+        function updatePowerUps() {
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                const powerUp = powerUps[i];
+                
+                // Move power-up
+                powerUp.y += powerUp.speed;
+                
+                // Draw power-up
+                ctx.fillStyle = powerUp.color;
+                ctx.beginPath();
+                ctx.arc(powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2, powerUp.width / 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Add glow
+                ctx.strokeStyle = powerUp.color;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Check if power-up is off screen
+                if (powerUp.y > canvas.height) {
+                    powerUps.splice(i, 1);
+                    continue;
+                }
+                
+                // Check collision with player
+                if (
+                    player.x < powerUp.x + powerUp.width &&
+                    player.x + player.width > powerUp.x &&
+                    player.y < powerUp.y + powerUp.height &&
+                    player.y + player.height > powerUp.y
+                ) {
+                    activatePowerUp(powerUp.type);
+                    powerUps.splice(i, 1);
+                }
+            }
+        }
+
+        // Activate power-up
+        function activatePowerUp(type) {
+            activePowerUp = type;
+            powerUpTime = 5000; // 5 seconds
+            
+            powerupIndicator.style.display = 'block';
+            powerupIndicator.textContent = type === 'health' ? 'HEALTH +50!' : 'RAPID FIRE!';
+            powerupIndicator.style.color = type === 'health' ? '#00ffcc' : '#ffcc00';
+            
+            if (type === 'health') {
+                health = Math.min(100, health + 50);
+                updateHUD();
+            } else if (type === 'rapid') {
+                player.shootDelay = 100;
+            }
+        }
+
+        // Update active power-up
+        function updateActivePowerUp() {
+            if (activePowerUp) {
+                powerUpTime -= 16; // Approximately 60 FPS
+                
+                if (powerUpTime <= 0) {
+                    if (activePowerUp === 'rapid') {
+                        player.shootDelay = 300;
+                    }
+                    activePowerUp = null;
+                    powerupIndicator.style.display = 'none';
+                }
+            }
+        }
+
+        // Spawn random power-ups
+        function spawnPowerUps() {
+            if (Math.random() < 0.001) {
+                spawnPowerUp(Math.random() * canvas.width, -30);
+            }
+        }
+
+        // Create explosion
+        function createExplosion(x, y, color) {
+            for (let i = 0; i < 15; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    size: Math.random() * 4 + 2,
+                    speedX: (Math.random() - 0.5) * 8,
+                    speedY: (Math.random() - 0.5) * 8,
+                    color: color,
+                    life: 30
+                });
+            }
+        }
+
+        // Update particles
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                
+                // Move particle
+                particle.x += particle.speedX;
+                particle.y += particle.speedY;
+                particle.life--;
+                
+                // Draw particle
+                ctx.globalAlpha = particle.life / 30;
+                ctx.fillStyle = particle.color;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Remove dead particles
+                if (particle.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        // Take damage
+        function takeDamage(amount) {
+            health -= amount;
+            updateHUD();
+            
+            if (health <= 0) {
+                health = 0;
                 gameOver();
             }
         }
-        
-        // Oyun bitişi
+
+        // Update level
+        function updateLevel() {
+            const newLevel = Math.floor(score / 5000) + 1;
+            if (newLevel > level) {
+                level = newLevel;
+                updateHUD();
+            }
+        }
+
+        // Update HUD
+        function updateHUD() {
+            scoreElement.textContent = score;
+            levelElement.textContent = level;
+            healthFill.style.width = health + '%';
+        }
+
+        // Game over
         function gameOver() {
             gameActive = false;
-            finalScore.textContent = score;
+            finalScoreElement.textContent = score;
+            enemiesDefeatedElement.textContent = enemiesDefeated;
+            levelReachedElement.textContent = level;
             hideAllScreens();
             screens.gameOver.classList.remove('hidden');
         }
-        
-        // Ekran yönetimi
+
+        // Hide all screens
         function hideAllScreens() {
             for (const screen in screens) {
                 screens[screen].classList.add('hidden');
             }
-            canvas.style.display = 'none';
         }
-        
+
+        // Show screen
         function showScreen(screenName) {
             hideAllScreens();
             screens[screenName].classList.remove('hidden');
         }
-        
-        // Kontroller
+
+        // Event listeners
+        startGameBtn.addEventListener('click', startGame);
+        upgradesBtn.addEventListener('click', () => showScreen('upgrades'));
+        leaderboardBtn.addEventListener('click', () => showScreen('leaderboard'));
+        upgradesBackBtn.addEventListener('click', () => showScreen('mainMenu'));
+        leaderboardBackBtn.addEventListener('click', () => showScreen('mainMenu'));
+        playAgainBtn.addEventListener('click', startGame);
+        menuBtn.addEventListener('click', () => showScreen('mainMenu'));
+
+        // Movement controls
+        let moveLeft = false;
+        let moveRight = false;
+
         leftBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if (!gameActive) return;
-            if (playerLane > 0) {
-                playerLane--;
-                playerX = lanes[playerLane] - playerWidth/2;
-            }
+            moveLeft = true;
         });
-        
+
+        leftBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            moveLeft = false;
+        });
+
         rightBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if (!gameActive) return;
-            if (playerLane < 3) {
-                playerLane++;
-                playerX = lanes[playerLane] - playerWidth/2;
+            moveRight = true;
+        });
+
+        rightBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            moveRight = false;
+        });
+
+        fireBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (gameActive) {
+                shootLaser();
             }
         });
-        
-        turboBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
             if (!gameActive) return;
-            speed = Math.min(300, speed + 50);
+            
+            if (e.key === 'ArrowLeft') moveLeft = true;
+            if (e.key === 'ArrowRight') moveRight = true;
+            if (e.key === ' ') shootLaser();
         });
-        
-        // Araba seçimi
-        carOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                carOptions.forEach(opt => opt.classList.remove('selected'));
-                option.classList.add('selected');
-            });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft') moveLeft = false;
+            if (e.key === 'ArrowRight') moveRight = false;
         });
-        
-        // Buton eventleri
-        buttons.quickRace.addEventListener('click', () => showScreen('carSelect'));
-        buttons.career.addEventListener('click', () => alert('Career Mode Coming Soon!'));
-        buttons.multiplayer.addEventListener('click', () => alert('Multiplayer Coming Soon!'));
-        buttons.garage.addEventListener('click', () => showScreen('garage'));
-        buttons.achievements.addEventListener('click', () => showScreen('achievements'));
-        buttons.startRace.addEventListener('click', startGame);
-        buttons.backToMenu.addEventListener('click', () => showScreen('mainMenu'));
-        buttons.garageBack.addEventListener('click', () => showScreen('mainMenu'));
-        buttons.achievementsBack.addEventListener('click', () => showScreen('mainMenu'));
-        buttons.playAgain.addEventListener('click', startGame);
-        buttons.mainMenu.addEventListener('click', () => showScreen('mainMenu'));
-        
-        // Oyun yüklendiğinde ana menüyü göster
-        window.addEventListener('load', () => {
-            showScreen('mainMenu');
+
+        // Movement update
+        function updateMovement() {
+            if (moveLeft) player.x -= player.speed;
+            if (moveRight) player.x += player.speed;
+        }
+
+        // Update movement in game loop
+        const originalGameLoop = gameLoop;
+        gameLoop = function() {
+            if (gameActive) {
+                updateMovement();
+            }
+            originalGameLoop();
+        };
+
+        // Auto-shoot when fire button is held
+        fireBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (gameActive) {
+                shootLaser();
+                autoShootInterval = setInterval(shootLaser, player.shootDelay);
+            }
         });
+
+        fireBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (autoShootInterval) {
+                clearInterval(autoShootInterval);
+                autoShootInterval = null;
+            }
+        });
+
+        let autoShootInterval = null;
+
+        // Initialize
+        createStars();
     </script>
 </body>
 </html>
