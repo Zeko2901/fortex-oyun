@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpeedRacer 3D - Ultimate Car Racing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c0e2b, #1a1f38, #2d3748);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 700px;
+            background: #0a0a16;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            border: 3px solid #ffcc00;
+        }
+        
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+        
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0c0e2b, #1a1f38);
+            padding: 30px;
+            text-align: center;
+            z-index: 10;
+        }
+        
+        .game-title {
+            font-size: 42px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ffcc00, #ff9900, #ff6600);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(255, 153, 0, 0.5);
+        }
+        
+        .game-subtitle {
+            font-size: 16px;
+            color: #aaccff;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ffcc00, #ff9900);
+            border: none;
+            border-radius: 50px;
+            color: #1a1f38;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 15px 40px;
+            margin: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(255, 153, 0, 0.3);
+            width: 220px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(255, 153, 0, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .car-selection {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .car-option {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .car-option.selected {
+            border-color: #ffcc00;
+            background: rgba(255, 204, 0, 0.1);
+            transform: scale(1.05);
+        }
+        
+        .car-preview {
+            width: 100%;
+            height: 60px;
+            background: linear-gradient(45deg, #ff6b6b, #ffcc00);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .car-name {
+            font-size: 12px;
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        
+        .car-stats {
+            font-size: 10px;
+            color: #aaccff;
+            margin-top: 5px;
+        }
+        
+        .hud {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 5;
+        }
+        
+        .hud-item {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 16px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .speed-display {
+            color: #ffcc00;
+        }
+        
+        .score-display {
+            color: #00ffcc;
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 25px;
+            z-index: 5;
+        }
+        
+        .control-btn {
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 28px;
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            user-select: none;
+        }
+        
+        .turbo-btn {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff3300, #cc0000);
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.2;
+            padding: 10px;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .upgrade-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .leaderboard-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 280px;
+        }
+        
+        .mission-progress {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(45deg, #ffcc00, #ff9900);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        
+        .achievement-badge {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #ffcc00, #ff9900);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="hud">
+            <div class="hud-item score-display">SCORE: 0</div>
+            <div class="hud-item speed-display">SPEED: 0</div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-btn" id="leftBtn">←</div>
+            <div class="control-btn turbo-btn" id="turboBtn">TURBO</div>
+            <div class="control-btn" id="rightBtn">→</div>
+        </div>
+        
+        <!-- ANA MENÜ -->
+        <div id="mainMenu" class="screen">
+            <div class="game-title">SPEEDRACER</div>
+            <div class="game-subtitle">3D ULTIMATE RACING EXPERIENCE</div>
+            
+            <button class="btn" id="quickRaceBtn">QUICK RACE</button>
+            <button class="btn btn-secondary" id="careerBtn">CAREER MODE</button>
+            <button class="btn" id="multiplayerBtn">MULTIPLAYER</button>
+            <button class="btn btn-secondary" id="garageBtn">GARAGE</button>
+            <button class="btn" id="achievementsBtn">ACHIEVEMENTS</button>
+        </div>
+        
+        <!-- ARABA SEÇİM -->
+        <div id="carSelect" class="screen hidden">
+            <div class="game-title">SELECT CAR</div>
+            
+            <div class="car-selection">
+                <div class="car-option selected">
+                    <div class="car-preview" style="background: linear-gradient(45deg, #ff6b6b, #ee5a24)"></div>
+                    <div class="car-name">SPORT RACER</div>
+                    <div class="car-stats">Speed: 95% | Turbo: 80%</div>
+                </div>
+                <div class="car-option">
+                    <div class="car-preview" style="background: linear-gradient(45deg, #4834d4, #686de0)"></div>
+                    <div class="car-name">DRIFT KING</div>
+                    <div class="car-stats">Speed: 85% | Control: 95%</div>
+                </div>
+                <div class="car-option">
+                    <div class="car-preview" style="background: linear-gradient(45deg, #00d2d3, #54a0ff)"></div>
+                    <div class="car-name">TURBO BEAST</div>
+                    <div class="car-stats">Turbo: 100% | Speed: 75%</div>
+                </div>
+                <div class="car-option">
+                    <div class="car-preview" style="background: linear-gradient(45deg, #ff9ff3, #f368e0)"></div>
+                    <div class="car-name">NEON RIDER</div>
+                    <div class="car-stats">Style: 100% | Speed: 90%</div>
+                </div>
+            </div>
+            
+            <button class="btn" id="startRaceBtn">START RACE</button>
+            <button class="btn btn-secondary" id="backToMenuBtn">BACK</button>
+        </div>
+        
+        <!-- GARAJ -->
+        <div id="garageScreen" class="screen hidden">
+            <div class="game-title">GARAGE</div>
+            
+            <div class="upgrade-item">
+                <div>
+                    <div style="font-weight: bold; color: #ffcc00;">ENGINE POWER</div>
+                    <div class="mission-progress">
+                        <div class="progress-bar" style="width: 70%"></div>
+                    </div>
+                </div>
+                <button class="btn" style="padding: 8px 15px; font-size: 12px;">UPGRADE</button>
+            </div>
+            
+            <div class="upgrade-item">
+                <div>
+                    <div style="font-weight: bold; color: #ffcc00;">TURBO BOOST</div>
+                    <div class="mission-progress">
+                        <div class="progress-bar" style="width: 50%"></div>
+                    </div>
+                </div>
+                <button class="btn" style="padding: 8px 15px; font-size: 12px;">UPGRADE</button>
+            </div>
+            
+            <div class="upgrade-item">
+                <div>
+                    <div style="font-weight: bold; color: #ffcc00;">NITRO CAPACITY</div>
+                    <div class="mission-progress">
+                        <div class="progress-bar" style="width: 30%"></div>
+                    </div>
+                </div>
+                <button class="btn" style="padding: 8px 15px; font-size: 12px;">UPGRADE</button>
+            </div>
+            
+            <button class="btn btn-secondary" id="garageBackBtn">BACK</button>
+        </div>
+        
+        <!-- BAŞARIMLAR -->
+        <div id="achievementsScreen" class="screen hidden">
+            <div class="game-title">ACHIEVEMENTS</div>
+            
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; margin: 20px 0;">
+                <div class="achievement-badge">🏆</div>
+                <div class="achievement-badge">🚗</div>
+                <div class="achievement-badge">⚡</div>
+                <div class="achievement-badge">⭐</div>
+            </div>
+            
+            <div class="leaderboard-item">
+                <span>First Race</span>
+                <span style="color: #00ffcc;">COMPLETED</span>
+            </div>
+            <div class="leaderboard-item">
+                <span>Speed Demon</span>
+                <span style="color: #ffcc00;">50%</span>
+            </div>
+            <div class="leaderboard-item">
+                <span>Turbo Master</span>
+                <span style="color: #ff6b6b;">25%</span>
+            </div>
+            
+            <button class="btn btn-secondary" id="achievementsBackBtn">BACK</button>
+        </div>
+        
+        <!-- OYUN BİTTİ -->
+        <div id="gameOverScreen" class="screen hidden">
+            <div class="game-title">RACE FINISHED</div>
+            
+            <div style="font-size: 24px; color: #ffcc00; margin: 20px 0;">
+                FINAL SCORE: <span id="finalScore">0</span>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; margin: 15px 0;">
+                <div>BEST COMBO: 15x</div>
+                <div>TOP SPEED: 245 km/h</div>
+                <div>CARS PASSED: 12</div>
+            </div>
+            
+            <button class="btn" id="playAgainBtn">PLAY AGAIN</button>
+            <button class="btn btn-secondary" id="mainMenuBtn">MAIN MENU</button>
+        </div>
+    </div>
+
+    <script>
+        // Oyun değişkenleri
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Ekran boyutları
+        canvas.width = 400;
+        canvas.height = 700;
+        
+        // Ekranlar
+        const screens = {
+            mainMenu: document.getElementById('mainMenu'),
+            carSelect: document.getElementById('carSelect'),
+            garage: document.getElementById('garageScreen'),
+            achievements: document.getElementById('achievementsScreen'),
+            gameOver: document.getElementById('gameOverScreen')
+        };
+        
+        // HUD elementleri
+        const scoreDisplay = document.querySelector('.score-display');
+        const speedDisplay = document.querySelector('.speed-display');
+        const finalScore = document.getElementById('finalScore');
+        
+        // Butonlar
+        const buttons = {
+            quickRace: document.getElementById('quickRaceBtn'),
+            career: document.getElementById('careerBtn'),
+            multiplayer: document.getElementById('multiplayerBtn'),
+            garage: document.getElementById('garageBtn'),
+            achievements: document.getElementById('achievementsBtn'),
+            startRace: document.getElementById('startRaceBtn'),
+            backToMenu: document.getElementById('backToMenuBtn'),
+            garageBack: document.getElementById('garageBackBtn'),
+            achievementsBack: document.getElementById('achievementsBackBtn'),
+            playAgain: document.getElementById('playAgainBtn'),
+            mainMenu: document.getElementById('mainMenuBtn')
+        };
+        
+        // Kontroller
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        const turboBtn = document.getElementById('turboBtn');
+        
+        // Araba seçenekleri
+        const carOptions = document.querySelectorAll('.car-option');
+        
+        // Oyun durumu
+        let gameActive = false;
+        let score = 0;
+        let speed = 0;
+        let playerX = canvas.width / 2 - 25;
+        let playerY = canvas.height - 150;
+        const playerWidth = 50;
+        const playerHeight = 80;
+        let playerLane = 1;
+        const lanes = [80, 160, 240, 320];
+        
+        // 3D efekti için değişkenler
+        let roadWidth = 300;
+        let roadX = (canvas.width - roadWidth) / 2;
+        let segmentLength = 200;
+        let camHeight = 1000;
+        let camDepth = 0.84;
+        let road = {
+            segments: [],
+            curves: [],
+            hills: []
+        };
+        
+        // Yol segmentleri oluştur
+        function createRoad() {
+            road.segments = [];
+            for(let i = 0; i < 500; i++) {
+                road.segments.push({
+                    index: i,
+                    point: {
+                        world: { z: i * segmentLength },
+                        screen: {},
+                        scale: {}
+                    },
+                    color: Math.floor(i / 5) % 2 ? '#6B8CFF' : '#4865C7'
+                });
+            }
+        }
+        
+        // Oyun başlatma
+        function startGame() {
+            gameActive = true;
+            score = 0;
+            speed = 0;
+            playerLane = 1;
+            playerX = lanes[playerLane] - playerWidth/2;
+            
+            createRoad();
+            
+            hideAllScreens();
+            canvas.style.display = 'block';
+            
+            gameLoop();
+        }
+        
+        // Oyun döngüsü
+        function gameLoop() {
+            if (!gameActive) return;
+            
+            // Arkaplan
+            ctx.fillStyle = '#1a1f38';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Yolu çiz
+            drawRoad3D();
+            
+            // Arabaları çiz
+            drawCars();
+            
+            // Oyuncu arabasını çiz
+            drawPlayerCar();
+            
+            // Skor ve hızı güncelle
+            score += Math.floor(speed / 10);
+            speed = Math.min(200, speed + 0.1);
+            
+            scoreDisplay.textContent = `SCORE: ${score}`;
+            speedDisplay.textContent = `SPEED: ${Math.floor(speed)}`;
+            
+            // Çarpışma kontrolü
+            checkCollisions();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 3D yol çizimi
+        function drawRoad3D() {
+            const baseSegment = Math.floor(camDepth / segmentLength);
+            const basePercent = (camDepth % segmentLength) / segmentLength;
+            
+            let x = 0;
+            let dx = 0;
+            
+            let maxy = canvas.height;
+            
+            let n = 0;
+            for(n = baseSegment; n < baseSegment + 200; n++) {
+                const segment = road.segments[n];
+                if(!segment) continue;
+                
+                const clip = 0;
+                
+                const camX = 0;
+                const camY = 0;
+                const camZ = camDepth;
+                
+                const scale = camHeight / segment.point.world.z;
+                const x1 = roadX - scale * roadWidth / 2;
+                const x2 = roadX + scale * roadWidth / 2;
+                
+                segment.point.screen = {
+                    x: canvas.width/2,
+                    y: canvas.height/2,
+                    z: 0
+                };
+                
+                segment.point.scale = scale;
+                
+                // Yol segmentini çiz
+                ctx.fillStyle = segment.color;
+                ctx.beginPath();
+                ctx.moveTo(x1, maxy);
+                ctx.lineTo(x1, canvas.height/2 + 100);
+                ctx.lineTo(x2, canvas.height/2 + 100);
+                ctx.lineTo(x2, maxy);
+                ctx.fill();
+                
+                maxy = canvas.height/2 + 100;
+            }
+            
+            // Yol çizgileri
+            for(let i = 0; i < 4; i++) {
+                const laneX = roadX - roadWidth/2 + roadWidth * (i + 1) / 5;
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([20, 20]);
+                ctx.beginPath();
+                ctx.moveTo(laneX, 0);
+                ctx.lineTo(laneX, canvas.height);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+        }
+        
+        // Oyuncu arabasını çiz
+        function drawPlayerCar() {
+            ctx.fillStyle = '#FF6B6B';
+            ctx.fillRect(playerX, playerY, playerWidth, playerHeight);
+            
+            // Cam
+            ctx.fillStyle = '#A0D2FF';
+            ctx.fillRect(playerX + 5, playerY + 5, playerWidth - 10, 20);
+            
+            // Tekerlekler
+            ctx.fillStyle = '#222';
+            ctx.fillRect(playerX - 5, playerY + 10, 5, 20);
+            ctx.fillRect(playerX + playerWidth, playerY + 10, 5, 20);
+            ctx.fillRect(playerX - 5, playerY + playerHeight - 30, 5, 20);
+            ctx.fillRect(playerX + playerWidth, playerY + playerHeight - 30, 5, 20);
+        }
+        
+        // Diğer arabaları çiz
+        function drawCars() {
+            // Basit araba yerleşimi
+            ctx.fillStyle = '#4865C7';
+            ctx.fillRect(lanes[0] - 25, 200, 50, 80);
+            
+            ctx.fillStyle = '#FFCC00';
+            ctx.fillRect(lanes[2] - 25, 400, 50, 80);
+            
+            ctx.fillStyle = '#00D2D3';
+            ctx.fillRect(lanes[1] - 25, 600, 50, 80);
+        }
+        
+        // Çarpışma kontrolü
+        function checkCollisions() {
+            // Basit çarpışma kontrolü
+            if(Math.random() < 0.005) {
+                gameOver();
+            }
+        }
+        
+        // Oyun bitişi
+        function gameOver() {
+            gameActive = false;
+            finalScore.textContent = score;
+            hideAllScreens();
+            screens.gameOver.classList.remove('hidden');
+        }
+        
+        // Ekran yönetimi
+        function hideAllScreens() {
+            for (const screen in screens) {
+                screens[screen].classList.add('hidden');
+            }
+            canvas.style.display = 'none';
+        }
+        
+        function showScreen(screenName) {
+            hideAllScreens();
+            screens[screenName].classList.remove('hidden');
+        }
+        
+        // Kontroller
+        leftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (!gameActive) return;
+            if (playerLane > 0) {
+                playerLane--;
+                playerX = lanes[playerLane] - playerWidth/2;
+            }
+        });
+        
+        rightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (!gameActive) return;
+            if (playerLane < 3) {
+                playerLane++;
+                playerX = lanes[playerLane] - playerWidth/2;
+            }
+        });
+        
+        turboBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (!gameActive) return;
+            speed = Math.min(300, speed + 50);
+        });
+        
+        // Araba seçimi
+        carOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                carOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+            });
+        });
+        
+        // Buton eventleri
+        buttons.quickRace.addEventListener('click', () => showScreen('carSelect'));
+        buttons.career.addEventListener('click', () => alert('Career Mode Coming Soon!'));
+        buttons.multiplayer.addEventListener('click', () => alert('Multiplayer Coming Soon!'));
+        buttons.garage.addEventListener('click', () => showScreen('garage'));
+        buttons.achievements.addEventListener('click', () => showScreen('achievements'));
+        buttons.startRace.addEventListener('click', startGame);
+        buttons.backToMenu.addEventListener('click', () => showScreen('mainMenu'));
+        buttons.garageBack.addEventListener('click', () => showScreen('mainMenu'));
+        buttons.achievementsBack.addEventListener('click', () => showScreen('mainMenu'));
+        buttons.playAgain.addEventListener('click', startGame);
+        buttons.mainMenu.addEventListener('click', () => showScreen('mainMenu'));
+        
+        // Oyun yüklendiğinde ana menüyü göster
+        window.addEventListener('load', () => {
+            showScreen('mainMenu');
+        });
+    </script>
+</body>
+</html>
